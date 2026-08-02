@@ -1,192 +1,378 @@
-# Enterprise Sales & Inventory BI Platform
+# 📊 Enterprise Business Intelligence & Data Engineering Platform
 
-A 2-person data engineering + analytics project. Both members build the
-same technical pattern (ETL → warehouse → dbt models → API → dashboard →
-AI insights); only the business domain differs.
+An enterprise-scale Business Intelligence (BI) and Data Engineering platform built to simulate a real-world analytics pipeline. The project follows a modern layered data warehouse architecture and demonstrates how raw business data is transformed into analytics-ready datasets using ETL pipelines, PostgreSQL, dbt, and Docker.
 
-- **Member 1** owns: Sales & Customer Analytics
-- **Member 2** owns: Product & Inventory Analytics
-- **Shared**: warehouse schema, Docker setup, dashboard shell, AI insights layer
+This project is being developed by a **2-member team**, where each member owns a separate business domain while collaborating on the shared data warehouse and infrastructure.
 
 ---
 
-## What was actually verified (read this before you claim anything in an interview)
+# 🚀 Project Overview
 
-Everything below was run for real against a live Postgres instance during
-development — not just written and assumed correct. Five real bugs were
-found and fixed in the process; they're listed because you should be able
-to explain at least a couple of them if asked "what went wrong when you
-built this?" (that question is common, and "everything worked first try"
-is not a believable answer):
-
-1. **ETL path bug** — scripts read `data/raw/*.csv` with a relative path,
-   which only resolves correctly if you run them from the project root,
-   not from inside `data/`. Fixed by documenting the required working
-   directory (see below) rather than hardcoding absolute paths.
-2. **Postgres `round()` type error** — `round(double precision, integer)`
-   doesn't exist in Postgres; `round()` with a precision argument requires
-   a `numeric` type. Every `round(x / y, n)` in the dbt models needed an
-   explicit `::numeric` cast.
-3. **Interval vs integer comparison** — `current_date - timestamp_column`
-   returns an `interval`, not an integer, so `> 90` failed. Fixed by
-   casting the timestamp to `::date` first so subtraction yields a plain
-   integer day count.
-4. **dbt schema naming** — by default, dbt does NOT put a model tagged
-   `+schema: marts` into a schema literally called `marts`. It
-   concatenates `<profile_target_schema>_<custom_schema>`, so everything
-   landed in `staging_marts` instead. Fixed with a custom
-   `generate_schema_name` macro. This is a well-known dbt gotcha — if an
-   interviewer asks "why does your macros folder have that file," this is
-   why.
-5. **Dashboard default filter too aggressive** — the returns-analysis
-   widget defaulted to `min_rate=0.05` (5%), but the synthetic dataset's
-   real return rates topped out around 4%, so the widget silently showed
-   nothing. Not a code bug — a bad default given the data's actual
-   distribution. Lowered to 1%.
-
-**Verified working end-to-end:** data generation → Postgres schema →
-both ETL pipelines → all 6 dbt models → all FastAPI endpoints (sales,
-inventory, AI insights) → dashboard successfully served and pointed at
-the live API.
-
-**NOT verified in this environment** (network/sandbox restrictions,
-not code problems):
-- Full Airflow scheduler execution — the two DAG files are syntactically
-  valid Python (AST-parsed clean) and structurally correct, but were never
-  run inside an actual Airflow scheduler/webserver. You should do this
-  yourself with `docker-compose` + the official Airflow image before
-  claiming "orchestrated with Airflow" in an interview.
-- `docker-compose.yml` as a whole — built to standard patterns but not
-  spun up as containers in this sandbox (no Docker daemon available here).
-  Test it yourself: `docker compose up --build`.
-- The LLM narrative layer in `/insights` — code path is written and has a
-  tested fallback (confirmed working), but the actual Anthropic API call
-  branch only runs if you set `ANTHROPIC_API_KEY`, which wasn't configured
-  here.
-
-Don't let this list scare you — this is what a real, honestly-tested
-project's caveats look like. A project with zero caveats listed is one
-nobody actually ran.
-
----
-
-## Architecture
+The platform processes business data through multiple layers:
 
 ```
-Raw CSVs (simulated source system)
-   |
-   v
-ETL (Python/pandas)  --------->  Postgres: raw -> staging
-   |  Member 1: sales.py                (validate, dedupe, clean)
-   |  Member 2: inventory.py
-   v
-dbt models  ---------------->  Postgres: marts (fct_* tables)
-   |  Member 1: models/sales/
-   |  Member 2: models/inventory/
-   v
-FastAPI  -------------------->  REST endpoints per domain
-   |  Member 1: routers/sales.py
-   |  Member 2: routers/inventory.py
-   |  Shared:   routers/ai_insights.py
-   v
-Dashboard (HTML + Chart.js) -->  Tabs: Sales | Inventory
+CSV Data Sources
+        │
+        ▼
+Python ETL Pipelines
+        │
+        ▼
+Raw Schema
+(Original Source Data)
+        │
+        ▼
+Staging Schema
+(Cleaned & Validated Data)
+        │
+        ▼
+dbt Transformations
+        │
+        ▼
+Marts Schema
+(Business KPIs)
+        │
+        ▼
+FastAPI (Upcoming)
+        │
+        ▼
+Dashboard (Upcoming)
 ```
 
-Orchestration: Airflow DAGs (`dags/sales_dag.py`, `dags/inventory_dag.py`)
-schedule the ETL + dbt run daily, staggered an hour apart.
+The architecture follows a traditional enterprise data warehouse approach used in modern analytics systems.
 
 ---
 
-## How to run it yourself
+# ✨ Features
 
-### 1. Local (no Docker) — what was used to verify this project
+## ✅ Enterprise Data Warehouse
+
+- Layered warehouse architecture
+  - Raw
+  - Staging
+  - Marts
+- PostgreSQL data warehouse
+- Schema-driven database design
+- Dockerized PostgreSQL environment
+
+---
+
+## ✅ Data Generation
+
+Synthetic datasets for:
+
+- Customers
+- Employees
+- Orders
+- Order Lines
+- Products
+- Suppliers
+- Inventory
+- Returns
+
+---
+
+## ✅ Python ETL Pipelines
+
+### Sales & Customer Analytics
+
+- Extract source data
+- Validate records
+- Remove duplicates
+- Handle missing values
+- Type conversion
+- Revenue calculation
+- Load into warehouse
+
+---
+
+### Product & Inventory Analytics
+
+- Inventory validation
+- Product cleaning
+- Supplier processing
+- Return data processing
+- Inventory standardization
+- Load into warehouse
+
+---
+
+## ✅ Data Quality
+
+The ETL pipeline performs:
+
+- Duplicate removal
+- Null handling
+- Invalid record filtering
+- Data type conversion
+- Business rule validation
+
+---
+
+## ✅ dbt Data Models
+
+Business-ready analytical models include:
+
+- Monthly Revenue
+- Customer Lifetime Value (CLV)
+- Salesperson Performance
+- Product Profitability
+- Inventory Health
+- Return Analysis
+
+---
+
+# 🛠 Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| Programming | Python |
+| Database | PostgreSQL |
+| ETL | Pandas |
+| Data Transformation | dbt |
+| SQL | PostgreSQL SQL |
+| Containerization | Docker |
+| Orchestration | Apache Airflow *(Upcoming)* |
+| API | FastAPI *(Upcoming)* |
+| Dashboard | React + Chart.js *(Upcoming)* |
+
+---
+
+# 📂 Project Structure
+
+```
+biplatform
+│
+├── api/                # FastAPI backend (Upcoming)
+├── dags/               # Airflow DAGs
+├── dashboard/          # Dashboard UI
+├── data/
+│   ├── raw/            # Generated CSV files
+│   ├── etl_sales.py
+│   ├── etl_inventory.py
+│   ├── generate_data.py
+│   └── db.py
+│
+├── dbt_project/
+│   ├── models/
+│   ├── macros/
+│   └── profiles/
+│
+├── sql/
+│   └── schema.sql
+│
+├── docker/
+└── docker-compose.yml
+```
+
+---
+
+# 🏗 Data Warehouse Architecture
+
+## Raw Layer
+
+Stores the original extracted data without modifications.
+
+Purpose:
+
+- Data backup
+- Audit trail
+- Reprocessing
+
+---
+
+## Staging Layer
+
+Stores validated and cleaned data.
+
+Operations include:
+
+- Duplicate removal
+- Missing value handling
+- Type conversion
+- Data validation
+
+---
+
+## Marts Layer
+
+Built using dbt.
+
+Provides analytics-ready tables for:
+
+- Revenue analysis
+- Customer analytics
+- Inventory analytics
+- Product performance
+
+---
+
+# ⚙️ Installation
+
+## 1. Clone the Repository
+
 ```bash
-# Postgres
-sudo apt-get install postgresql
-sudo service postgresql start
-sudo -u postgres psql -c "CREATE USER biuser WITH PASSWORD 'bipass' SUPERUSER;"
-sudo -u postgres psql -c "CREATE DATABASE bi_platform OWNER biuser;"
+git clone https://github.com/<your-username>/enterprise-bi-platform.git
 
-# From the project root (NOT from inside data/ — see bug #1 above)
+cd enterprise-bi-platform/biplatform
+```
+
+---
+
+## 2. Create Virtual Environment
+
+```bash
+python -m venv .venv
+```
+
+Activate:
+
+Windows
+
+```bash
+.venv\Scripts\activate
+```
+
+Linux/macOS
+
+```bash
+source .venv/bin/activate
+```
+
+---
+
+## 3. Install Dependencies
+
+### Data Pipeline
+
+```bash
 pip install -r data/requirements.txt
-psql -h localhost -U biuser -d bi_platform -f sql/schema.sql
-export DATABASE_URL="postgresql+psycopg2://biuser:bipass@localhost:5432/bi_platform"
-python3 data/generate_data.py
-python3 data/etl_sales.py
-python3 data/etl_inventory.py
-
-# dbt
-pip install dbt-postgres
-cd dbt_project
-export DBT_PROFILES_DIR=$(pwd)/profiles
-export DB_HOST=localhost DB_USER=biuser DB_PASSWORD=bipass DB_NAME=bi_platform
-dbt run
-
-# API
-cd ../api
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-# docs at http://localhost:8000/docs
-
-# Dashboard
-cd ../dashboard
-python3 -m http.server 3000
-# open http://localhost:3000, point apiBase at http://localhost:8000
 ```
 
-### 2. Docker (untested in this sandbox — verify yourself)
+### dbt
+
 ```bash
-docker compose up --build
-# Postgres: localhost:5432, API: localhost:8000, Dashboard: localhost:3000
+pip install -r dbt_project/requirements.txt
+```
+
+### FastAPI (Upcoming)
+
+```bash
+pip install -r api/requirements.txt
 ```
 
 ---
 
-## Resume bullets
+## 4. Start Docker
 
-### Member 1
-**Enterprise Sales & Customer Analytics Platform** *(Team of 2)*
-Python, SQL, PostgreSQL, dbt, Apache Airflow, FastAPI, Chart.js, Docker
-
-- Built an ETL pipeline in Python that cleans and loads sales/customer
-  data into Postgres, handling deduplication, null-imputation, and
-  invalid-data rejection (e.g. negative quantities).
-- Wrote dbt models to compute revenue, customer lifetime value, churn-risk
-  flags, and salesperson performance from raw transactional data.
-- Built FastAPI endpoints serving these metrics, and a dashboard tab
-  visualizing revenue trends and at-risk customers.
-- Debugged real Postgres type-casting and dbt schema-configuration issues
-  while integrating the pipeline end-to-end.
-
-### Member 2
-**Enterprise Product & Inventory Analytics Platform** *(Team of 2)*
-Python, SQL, PostgreSQL, dbt, Apache Airflow, FastAPI, Chart.js, Docker
-
-- Built an ETL pipeline in Python that cleans and loads product,
-  inventory, and returns data into Postgres, enforcing data-quality rules
-  (e.g. clipping negative stock values).
-- Wrote dbt models joining inventory and sales data to compute stock
-  turnover, reorder alerts, product profitability, and return-rate
-  analysis by reason.
-- Built FastAPI endpoints and a dashboard tab surfacing reorder alerts
-  and product profitability rankings.
-- Debugged real Postgres type-casting and dbt schema-configuration issues
-  while integrating the pipeline end-to-end.
-
-**Do not use these verbatim if you haven't personally run the code and
-hit at least some of these issues yourself.** Interviewers who ask "walk
-me through a bug you hit" are testing whether the bullet is true.
+```bash
+docker compose up -d
+```
 
 ---
 
-## What to actually do before putting this on a resume
+## 5. Generate Data
 
-1. Run every command in the "How to run it" section yourself.
-2. Break something on purpose (change a column name, feed it bad data)
-   and fix it — that's what gives you something real to say when asked
-   "what was hard about this."
-3. Get Airflow and Docker Compose actually running — those two weren't
-   verified here and are the two most likely to have real issues.
-4. Change at least one KPI definition or add one new endpoint yourselves,
-   so there's a piece of this that isn't just "Claude wrote it and I ran
-   it."
+```bash
+cd data
+
+python generate_data.py
+```
+
+---
+
+## 6. Run ETL Pipelines
+
+```bash
+python etl_sales.py
+
+python etl_inventory.py
+```
+
+---
+
+## 7. Run dbt Models
+
+```bash
+cd ..
+
+cd dbt_project
+
+dbt run --profiles-dir profiles
+```
+
+---
+
+# 📈 Current Progress
+
+- ✅ PostgreSQL Warehouse
+- ✅ Warehouse Schema
+- ✅ Python ETL
+- ✅ Raw Layer
+- ✅ Staging Layer
+- ✅ dbt Models
+- ✅ Docker
+- 🚧 FastAPI
+- 🚧 React Dashboard
+- 🚧 Apache Airflow
+- 🚧 AI Business Insights
+
+---
+
+# 👨‍💻 Team Responsibilities
+
+## Venu Madhav
+
+### Sales & Customer Analytics
+
+- Sales ETL
+- Customer ETL
+- Revenue KPIs
+- Customer KPIs
+- Sales dbt Models
+- Sales APIs *(Upcoming)*
+- Sales Dashboard *(Upcoming)*
+
+---
+
+## Karthik
+
+### Product & Inventory Analytics
+
+- Inventory ETL
+- Product ETL
+- Inventory KPIs
+- Product KPIs
+- Inventory dbt Models
+- Inventory APIs *(Upcoming)*
+- Inventory Dashboard *(Upcoming)*
+
+---
+
+## Shared
+
+- PostgreSQL
+- Database Design
+- Docker
+- Authentication *(Upcoming)*
+- Deployment *(Upcoming)*
+- AI Insights *(Upcoming)*
+
+---
+
+# 🚀 Future Enhancements
+
+- FastAPI REST APIs
+- Interactive React Dashboard
+- Apache Airflow Scheduling
+- AI-powered Business Insights
+- JWT Authentication
+- Automated Deployment
+
+---
+
+# 👨‍💻 Developed By
+
+## Venu Madhav Nadavala
+## Karthik Dommaraju
+
+B.Tech, IIT Tirupati
