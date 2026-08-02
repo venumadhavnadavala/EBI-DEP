@@ -1,0 +1,16 @@
+name: 'bi_platform'
+version: '1.0.0'
+config-version: 2
+
+profile: 'bi_platform'
+
+model-paths: ["models"]
+
+models:
+  bi_platform:
+    sales:
+      +schema: marts
+      +materialized: table
+    inventory:
+      +schema: marts
+      +materialized: table

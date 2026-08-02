@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Enterprise BI Platform</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f172a; --panel: #1e293b; --text: #e2e8f0; --muted: #94a3b8;
+    --sales: #38bdf8; --inv: #34d399; --border: #334155;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  header { padding: 20px 28px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  header h1 { font-size: 18px; margin:0; font-weight: 600; }
+  .tabs { display:flex; gap:8px; }
+  .tab { padding: 8px 16px; border-radius: 8px; cursor:pointer; background: var(--panel); border: 1px solid var(--border); font-size: 13px; }
+  .tab.active { background: #334155; border-color: #64748b; }
+  main { padding: 24px 28px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:16px; margin-bottom: 24px; }
+  .card { background: var(--panel); border:1px solid var(--border); border-radius: 12px; padding:16px; }
+  .card .label { color: var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em;}
+  .card .value { font-size: 26px; font-weight:700; margin-top:6px; }
+  .chart-row { display:grid; grid-template-columns: 2fr 1fr; gap:16px; margin-bottom:24px; }
+  canvas { max-height: 320px; }
+  table { width:100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align:left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight:500; }
+  .badge { padding: 2px 8px; border-radius:6px; font-size:11px; }
+  .badge.risk { background:#7f1d1d; color:#fecaca; }
+  .badge.ok { background:#14532d; color:#bbf7d0; }
+  .insights { background: var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:24px; font-size:14px; line-height:1.6; }
+  .config-note { color: var(--muted); font-size:12px; margin-top:8px;}
+  section { display:none; }
+  section.active { display:block; }
+  input#apiBase { background:var(--panel); border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:6px; font-size:12px; width:260px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📊 Enterprise BI Platform</h1>
+  <div style="display:flex; align-items:center; gap:16px;">
+    <input id="apiBase" value="http://localhost:8000" title="FastAPI base URL"/>
+    <div class="tabs">
+      <div class="tab active" data-tab="sales">Sales (Member 1)</div>
+      <div class="tab" data-tab="inventory">Inventory (Member 2)</div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section id="sales" class="active">
+    <div class="grid" id="salesKpis"></div>
+    <div class="insights" id="salesInsights">Loading insights…</div>
+    <div class="chart-row">
+      <div class="card"><canvas id="revenueChart"></canvas></div>
+      <div class="card"><canvas id="regionChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Top Customers</h3>
+      <table id="topCustomersTable"><thead><tr><th>Name</th><th>Region</th><th>LTV</th><th>Status</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <section id="inventory">
+    <div class="grid" id="invKpis"></div>
+    <div class="insights" id="invInsights">Loading insights…</div>
+    <div class="chart-row">
+      <div class="card"><canvas id="profitChart"></canvas></div>
+      <div class="card"><canvas id="returnChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Reorder Needed</h3>
+      <table id="reorderTable"><thead><tr><th>Product</th><th>Category</th><th>Stock</th><th>Days Left</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <p class="config-note">Point this at your running FastAPI instance (default http://localhost:8000). CORS is open on the API for local dev.</p>
+</main>
+
+<script>
+const base = () => document.getElementById('apiBase').value.replace(/\/$/, '');
+
+// ---- tab switching ----
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('section').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.tab).classList.add('active');
+  });
+});
+
+async function getJSON(path) {
+  const res = await fetch(base() + path);
+  if (!res.ok) throw new Error(`${path} -> ${res.status}`);
+  return res.json();
+}
+
+function kpiCard(label, value) {
+  return `<div class="card"><div class="label">${label}</div><div class="value">${value}</div></div>`;
+}
+
+// ---------------- SALES (Member 1) ----------------
+async function loadSales() {
+  try {
+    const summary = await getJSON('/sales/kpis/summary');
+    document.getElementById('salesKpis').innerHTML =
+      kpiCard('Total Revenue', '₹' + Math.round(summary.total_revenue || 0).toLocaleString()) +
+      kpiCard('Total Orders', summary.total_orders || 0) +
+      kpiCard('Avg Order Value', '₹' + (summary.avg_order_value || 0));
+
+    const insights = await getJSON('/insights/sales');
+    document.getElementById('salesInsights').innerText = insights.summary;
+
+    const monthly = await getJSON('/sales/revenue/monthly');
+    const byMonth = {};
+    monthly.forEach(r => {
+      const m = r.order_month.slice(0, 7);
+      byMonth[m] = (byMonth[m] || 0) + Number(r.total_revenue);
+    });
+    new Chart(document.getElementById('revenueChart'), {
+      type: 'line',
+      data: { labels: Object.keys(byMonth), datasets: [{ label: 'Revenue', data: Object.values(byMonth), borderColor: '#38bdf8', tension:.3 }] },
+      options: { plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#94a3b8'}},y:{ticks:{color:'#94a3b8'}}} }
+    });
+
+    const byRegion = {};
+    monthly.forEach(r => { byRegion[r.region] = (byRegion[r.region]||0) + Number(r.total_revenue); });
+    new Chart(document.getElementById('regionChart'), {
+      type: 'doughnut',
+      data: { labels: Object.keys(byRegion), datasets:[{ data: Object.values(byRegion), backgroundColor:['#38bdf8','#818cf8','#f472b6','#fbbf24','#34d399'] }] },
+      options: { plugins:{legend:{position:'bottom', labels:{color:'#94a3b8'}}} }
+    });
+
+    const top = await getJSON('/sales/customers/top?limit=10');
+    document.querySelector('#topCustomersTable tbody').innerHTML = top.map(c =>
+      `<tr><td>${c.customer_name}</td><td>${c.region}</td><td>₹${Math.round(c.lifetime_value).toLocaleString()}</td>
+       <td><span class="badge ${c.at_risk_flag ? 'risk':'ok'}">${c.at_risk_flag ? 'At Risk':'Active'}</span></td></tr>`
+    ).join('');
+  } catch (e) {
+    document.getElementById('salesInsights').innerText = 'Could not reach API: ' + e.message;
+  }
+}
+
+// ---------------- INVENTORY (Member 2) ----------------
+async function loadInventory() {
+  try {
+    const summary = await getJSON('/inventory/kpis/summary');
+    document.getElementById('invKpis').innerHTML =
+      kpiCard('Products Needing Reorder', summary.products_needing_reorder || 0) +
+      kpiCard('Avg Margin', ((summary.avg_margin||0)*100).toFixed(1) + '%');
+
+    const insights = await getJSON('/insights/inventory');
+    document.getElementById('invInsights').innerText = insights.summary;
+
+    const profit = await getJSON('/inventory/profitability/top?limit=8');
+    new Chart(document.getElementById('profitChart'), {
+      type: 'bar',
+      data: { labels: profit.map(p=>p.product_name), datasets:[{ label:'Net Profit', data: profit.map(p=>p.estimated_net_profit), backgroundColor:'#34d399' }] },
+      options: { plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#94a3b8'}},y:{ticks:{color:'#94a3b8'}}} }
+    });
+
+    const returns = await getJSON('/inventory/returns/analysis?min_rate=0.01');
+    const byReason = {};
+    returns.forEach(r => { byReason[r.reason] = (byReason[r.reason]||0) + Number(r.units_returned); });
+    new Chart(document.getElementById('returnChart'), {
+      type: 'pie',
+      data: { labels: Object.keys(byReason), datasets:[{ data: Object.values(byReason), backgroundColor:['#f87171','#fb923c','#fbbf24','#a78bfa','#34d399'] }] },
+      options: { plugins:{legend:{position:'bottom', labels:{color:'#94a3b8'}}} }
+    });
+
+    const reorder = await getJSON('/inventory/forecast/reorder-needed');
+    document.querySelector('#reorderTable tbody').innerHTML = reorder.slice(0,12).map(p =>
+      `<tr><td>${p.product_name}</td><td>${p.category}</td><td>${p.stock_on_hand}</td><td>${p.days_of_stock_remaining ?? '—'}</td></tr>`
+    ).join('');
+  } catch (e) {
+    document.getElementById('invInsights').innerText = 'Could not reach API: ' + e.message;
+  }
+}
+
+loadSales();
+loadInventory();
+</script>
+</body>
+</html>

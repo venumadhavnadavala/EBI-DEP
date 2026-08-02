@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: bi_postgres
+    environment:
+      POSTGRES_USER: biuser
+      POSTGRES_PASSWORD: bipass
+      POSTGRES_DB: bi_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U biuser -d bi_platform"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: bi_api
+    environment:
+      DATABASE_URL: postgresql+psycopg2://biuser:bipass@postgres:5432/bi_platform
+      # ANTHROPIC_API_KEY: set this to enable LLM narrative insights (optional)
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  dashboard:
+    image: nginx:alpine
+    container_name: bi_dashboard
+    volumes:
+      - ./dashboard:/usr/share/nginx/html:ro
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

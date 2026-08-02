@@ -1,0 +1,21 @@
+supplier_id,supplier_name,country,reliability_score
+1,Williams PLC,Nepal,0.77
+2,Medina-Arroyo,Gambia,0.83
+3,Goodman Ltd,Guatemala,0.83
+4,Gutierrez Ltd,Thailand,0.86
+5,"Thomas, White and Jensen",El Salvador,0.75
+6,Wilson Ltd,South Georgia and the South Sandwich Islands,0.81
+7,"Phelps, York and Randolph",Mexico,0.78
+8,Newman-Jones,Paraguay,0.82
+9,King and Sons,Saint Kitts and Nevis,0.8
+10,"Freeman, Rivera and Anderson",Palau,0.88
+11,Garcia PLC,Bangladesh,0.94
+12,Stewart Group,Greenland,0.89
+13,"Hopkins, Steele and Hernandez",Montenegro,0.72
+14,Aguirre-Benjamin,Chile,0.73
+15,Edwards and Sons,Rwanda,0.9
+16,"Davidson, Hill and Ward",Philippines,0.79
+17,"Rivera, Castillo and Griffin",Singapore,0.92
+18,Tucker-Rodriguez,Oman,0.9
+19,"Miller, Ramirez and Serrano",Uganda,0.97
+20,"Gonzalez, Gross and Sims",Saint Lucia,0.96
