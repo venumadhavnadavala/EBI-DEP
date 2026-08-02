@@ -1,8 +1,8 @@
 # 📊 Enterprise Business Intelligence & Data Engineering Platform
 
-An enterprise-scale Business Intelligence (BI) and Data Engineering platform built to simulate a real-world analytics pipeline. The project follows a modern layered data warehouse architecture and demonstrates how raw business data is transformed into analytics-ready datasets using ETL pipelines, PostgreSQL, dbt, and Docker.
+An enterprise-scale **Business Intelligence (BI)** and **Data Engineering** platform that simulates a real-world analytics pipeline. The project follows a modern layered data warehouse architecture and demonstrates how raw business data is transformed into analytics-ready datasets using **Python ETL, PostgreSQL, dbt, and Docker**.
 
-This project is being developed by a **2-member team**, where each member owns a separate business domain while collaborating on the shared data warehouse and infrastructure.
+The project is being developed by a **2-member team**, where each member owns a separate business domain while collaborating on the shared data warehouse, infrastructure, and deployment.
 
 ---
 
@@ -32,13 +32,13 @@ Marts Schema
 (Business KPIs)
         │
         ▼
-FastAPI (Upcoming)
+FastAPI (In Progress)
         │
         ▼
-Dashboard (Upcoming)
+Dashboard (In Progress)
 ```
 
-The architecture follows a traditional enterprise data warehouse approach used in modern analytics systems.
+The architecture follows a traditional enterprise data warehouse approach used in modern analytics platforms.
 
 ---
 
@@ -47,18 +47,18 @@ The architecture follows a traditional enterprise data warehouse approach used i
 ## ✅ Enterprise Data Warehouse
 
 - Layered warehouse architecture
-  - Raw
-  - Staging
-  - Marts
-- PostgreSQL data warehouse
+  - Raw Layer
+  - Staging Layer
+  - Marts Layer
+- PostgreSQL Data Warehouse
 - Schema-driven database design
 - Dockerized PostgreSQL environment
 
 ---
 
-## ✅ Data Generation
+## ✅ Synthetic Data Generation
 
-Synthetic datasets for:
+Automatically generates realistic business datasets for:
 
 - Customers
 - Employees
@@ -79,20 +79,18 @@ Synthetic datasets for:
 - Validate records
 - Remove duplicates
 - Handle missing values
-- Type conversion
+- Data type conversion
 - Revenue calculation
-- Load into warehouse
-
----
+- Load into PostgreSQL
 
 ### Product & Inventory Analytics
 
-- Inventory validation
-- Product cleaning
-- Supplier processing
-- Return data processing
+- Product validation
+- Inventory processing
+- Supplier data cleaning
+- Returns processing
 - Inventory standardization
-- Load into warehouse
+- Load into PostgreSQL
 
 ---
 
@@ -101,7 +99,7 @@ Synthetic datasets for:
 The ETL pipeline performs:
 
 - Duplicate removal
-- Null handling
+- Missing value handling
 - Invalid record filtering
 - Data type conversion
 - Business rule validation
@@ -129,39 +127,45 @@ Business-ready analytical models include:
 | Database | PostgreSQL |
 | ETL | Pandas |
 | Data Transformation | dbt |
-| SQL | PostgreSQL SQL |
+| SQL | PostgreSQL |
 | Containerization | Docker |
-| Orchestration | Apache Airflow *(Upcoming)* |
-| API | FastAPI *(Upcoming)* |
-| Dashboard | React + Chart.js *(Upcoming)* |
+| Orchestration | Apache Airflow *(In Progress)* |
+| REST API | FastAPI *(In Progress)* |
+| Dashboard | React + Chart.js *(In Progress)* |
 
 ---
 
 # 📂 Project Structure
 
 ```
-biplatform
+EBI-DEP
 │
-├── api/                # FastAPI backend (Upcoming)
-├── dags/               # Airflow DAGs
-├── dashboard/          # Dashboard UI
+├── api/                    # FastAPI Backend
+├── dags/                   # Apache Airflow DAGs
+├── dashboard/              # Dashboard UI
+│
 ├── data/
-│   ├── raw/            # Generated CSV files
+│   ├── raw/
+│   ├── db.py
+│   ├── generate_data.py
 │   ├── etl_sales.py
 │   ├── etl_inventory.py
-│   ├── generate_data.py
-│   └── db.py
+│   └── requirements.txt
 │
 ├── dbt_project/
-│   ├── models/
 │   ├── macros/
-│   └── profiles/
+│   ├── models/
+│   ├── profiles/
+│   ├── dbt_project.yml
+│   └── requirements.txt
+│
+├── docker/
 │
 ├── sql/
 │   └── schema.sql
 │
-├── docker/
-└── docker-compose.yml
+├── docker-compose.yml
+└── README.md
 ```
 
 ---
@@ -170,39 +174,51 @@ biplatform
 
 ## Raw Layer
 
-Stores the original extracted data without modifications.
+Stores the original extracted data exactly as received from the source.
 
 Purpose:
 
-- Data backup
-- Audit trail
+- Preserve original data
+- Data auditing
 - Reprocessing
+- Backup layer
 
 ---
 
 ## Staging Layer
 
-Stores validated and cleaned data.
+Stores validated and cleaned business data.
 
-Operations include:
+Operations performed:
 
 - Duplicate removal
 - Missing value handling
-- Type conversion
 - Data validation
+- Data type conversion
+- Business rule enforcement
 
 ---
 
 ## Marts Layer
 
-Built using dbt.
+Built using **dbt**.
 
 Provides analytics-ready tables for:
 
-- Revenue analysis
-- Customer analytics
-- Inventory analytics
-- Product performance
+- Revenue Analysis
+- Customer Analytics
+- Inventory Analytics
+- Product Performance
+
+---
+
+# ⚙️ Prerequisites
+
+Before running the project, install:
+
+- Python 3.11+
+- Docker Desktop
+- Git
 
 ---
 
@@ -211,28 +227,28 @@ Provides analytics-ready tables for:
 ## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/enterprise-bi-platform.git
+git clone https://github.com/venumadhavnadavala/EBI-DEP.git
 
-cd enterprise-bi-platform/biplatform
+cd EBI-DEP
 ```
 
 ---
 
-## 2. Create Virtual Environment
+## 2. Create a Virtual Environment
 
 ```bash
 python -m venv .venv
 ```
 
-Activate:
+### Activate
 
-Windows
+**Windows**
 
 ```bash
 .venv\Scripts\activate
 ```
 
-Linux/macOS
+**Linux / macOS**
 
 ```bash
 source .venv/bin/activate
@@ -254,7 +270,7 @@ pip install -r data/requirements.txt
 pip install -r dbt_project/requirements.txt
 ```
 
-### FastAPI (Upcoming)
+### API
 
 ```bash
 pip install -r api/requirements.txt
@@ -262,7 +278,7 @@ pip install -r api/requirements.txt
 
 ---
 
-## 4. Start Docker
+## 4. Start Docker Services
 
 ```bash
 docker compose up -d
@@ -270,7 +286,7 @@ docker compose up -d
 
 ---
 
-## 5. Generate Data
+## 5. Generate Sample Data
 
 ```bash
 cd data
@@ -290,7 +306,7 @@ python etl_inventory.py
 
 ---
 
-## 7. Run dbt Models
+## 7. Build dbt Models
 
 ```bash
 cd ..
@@ -302,16 +318,34 @@ dbt run --profiles-dir profiles
 
 ---
 
-# 📈 Current Progress
+## 8. Verify the Warehouse
+
+```bash
+docker exec -it bi_postgres psql -U biuser -d bi_platform
+```
+
+Example:
+
+```sql
+SELECT COUNT(*) FROM staging.stg_customers;
+
+SELECT COUNT(*) FROM marts.fct_monthly_revenue;
+```
+
+---
+
+# ✅ Current Progress
 
 - ✅ PostgreSQL Warehouse
-- ✅ Warehouse Schema
-- ✅ Python ETL
+- ✅ Layered Warehouse Architecture
+- ✅ Database Schema Design
+- ✅ Synthetic Data Generator
+- ✅ Python ETL Pipelines
 - ✅ Raw Layer
 - ✅ Staging Layer
-- ✅ dbt Models
-- ✅ Docker
-- 🚧 FastAPI
+- ✅ dbt Transformations
+- ✅ Dockerized Deployment
+- 🚧 FastAPI Backend
 - 🚧 React Dashboard
 - 🚧 Apache Airflow
 - 🚧 AI Business Insights
@@ -320,59 +354,62 @@ dbt run --profiles-dir profiles
 
 # 👨‍💻 Team Responsibilities
 
-## Venu Madhav
+## Venu Madhav Nadavala
 
 ### Sales & Customer Analytics
 
-- Sales ETL
-- Customer ETL
+- Sales ETL Pipeline
+- Customer ETL Pipeline
 - Revenue KPIs
 - Customer KPIs
 - Sales dbt Models
-- Sales APIs *(Upcoming)*
-- Sales Dashboard *(Upcoming)*
+- Sales APIs *(In Progress)*
+- Sales Dashboard *(In Progress)*
 
 ---
 
-## Karthik
+## Karthik Dommaraju
 
 ### Product & Inventory Analytics
 
-- Inventory ETL
-- Product ETL
+- Inventory ETL Pipeline
+- Product ETL Pipeline
 - Inventory KPIs
 - Product KPIs
 - Inventory dbt Models
-- Inventory APIs *(Upcoming)*
-- Inventory Dashboard *(Upcoming)*
+- Inventory APIs *(In Progress)*
+- Inventory Dashboard *(In Progress)*
 
 ---
 
-## Shared
+## Shared Responsibilities
 
-- PostgreSQL
+- PostgreSQL Warehouse
 - Database Design
 - Docker
-- Authentication *(Upcoming)*
-- Deployment *(Upcoming)*
-- AI Insights *(Upcoming)*
+- Authentication *(Planned)*
+- Deployment *(Planned)*
+- AI Insights *(Planned)*
 
 ---
 
 # 🚀 Future Enhancements
 
-- FastAPI REST APIs
+- REST APIs using FastAPI
 - Interactive React Dashboard
 - Apache Airflow Scheduling
 - AI-powered Business Insights
 - JWT Authentication
 - Automated Deployment
+- CI/CD Pipeline
+- Cloud Deployment (AWS)
 
 ---
 
 # 👨‍💻 Developed By
 
-## Venu Madhav Nadavala
-## Karthik Dommaraju
+### Venu Madhav Nadavala
 
-B.Tech, IIT Tirupati
+### Karthik Dommaraju
+
+**B.Tech, IIT Tirupati**
