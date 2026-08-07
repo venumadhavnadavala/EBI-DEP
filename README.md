@@ -1,6 +1,6 @@
-Here is the formatted markdown code for your `README.md` file, incorporating your requested correction for the License section.
 
-```markdown
+
+
 # 📊 Enterprise Business Intelligence & Data Engineering Platform
 
 An end-to-end Business Intelligence (BI) and Data Engineering platform that transforms raw sales and inventory data into interactive dashboards and AI-powered business insights. The project demonstrates a modern analytics pipeline using Python ETL, PostgreSQL, dbt, FastAPI, React, and Docker.
@@ -9,12 +9,29 @@ Developed by a 2-member team, where each member owns a separate business domain 
 
 ---
 
-## 📸 Screenshots
-*(Add image links below once your screenshots are uploaded)*
-* **Executive Dashboard:** `![Executive Dashboard](images/dashboard.png)`
-* **Sales Analytics:** `![Sales Analytics](images/sales.png)`
-* **Inventory Analytics:** `![Inventory Analytics](images/inventory.png)`
-* **AI Business Insights:** `![AI Business Insights](images/insights.png)`
+# 📸 Screenshots
+
+## Executive Dashboard
+
+![Executive Dashboard](images/Dashboard.png)
+
+---
+
+## Sales Analytics
+
+![Sales Analytics](images/sales.png)
+
+---
+
+## Inventory Analytics
+
+![Inventory Analytics](images/inventory.png)
+
+---
+
+## AI Business Insights
+
+![AI Business Insights](images/insights.png)
 
 ---
 
