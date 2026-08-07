@@ -1,34 +1,38 @@
-"""
-Shared entrypoint — both members' routers mounted here.
-Run: uvicorn main:app --reload --port 8000
-Docs auto-generated at /docs
-"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import sales, inventory, ai_insights
+from routers.sales import router as sales_router
+from routers.inventory import router as inventory_router
+from routers.ai_insights import router as ai_router
 
 app = FastAPI(
-    title="Enterprise BI Platform API",
-    description="Sales & Inventory analytics API — built by a 2-person team.",
-    version="1.0.0",
+    title="Enterprise BI Platform",
+    version="1.0.0"
 )
+
+# ---------------- CORS ----------------
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(sales.router)
-app.include_router(inventory.router)
-app.include_router(ai_insights.router)
+# --------------------------------------
+
+app.include_router(sales_router)
+app.include_router(inventory_router)
+app.include_router(ai_router)
 
 
 @app.get("/")
 def root():
-    return {"status": "ok", "docs": "/docs"}
+    return {"message": "Enterprise BI Platform"}
 
 
 @app.get("/health")

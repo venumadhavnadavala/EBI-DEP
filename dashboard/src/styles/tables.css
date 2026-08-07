@@ -1,0 +1,37 @@
+.table-card {
+    background: #232b3e;
+    border-radius: 20px;
+    padding: 30px;
+    margin-top: 40px;
+}
+
+.table-card h2{
+    color:white;
+    margin-bottom:25px;
+}
+
+.table-card table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.table-card thead{
+    background:#303a52;
+}
+
+.table-card th{
+    text-align:left;
+    padding:16px;
+    color:white;
+    font-size:18px;
+}
+
+.table-card td{
+    padding:16px;
+    color:#e5e7eb;
+    border-bottom:1px solid #3b4458;
+}
+
+.table-card tbody tr:hover{
+    background:#374151;
+}

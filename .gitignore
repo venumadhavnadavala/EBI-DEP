@@ -1,35 +1,64 @@
+# ===========================
 # Python
+# ===========================
+
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 
-# Virtual environments
+# Virtual Environments
 .venv/
 venv/
 
-# VS Code
-.vscode/
-
-# Environment variables
+# Environment Variables
 .env
 .env.*
 
 # Logs
 *.log
 
-# dbt
-dbt_project/logs/
-dbt_project/target/
-dbt_project/profiles/.user.yml
-
-# Generated CSVs
-data/raw/*.csv
-
-# Caches
+# Python Cache
 .pytest_cache/
 .mypy_cache/
 .ipynb_checkpoints/
 
-# macOS
+# ===========================
+# React / Vite
+# ===========================
+
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.vite/
+
+# npm / yarn logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ===========================
+# dbt
+# ===========================
+
+dbt_project/logs/
+dbt_project/target/
+dbt_project/profiles/.user.yml
+
+# ===========================
+# Generated Data
+# ===========================
+
+data/raw/*.csv
+
+# ===========================
+# VS Code
+# ===========================
+
+.vscode/
+
+# ===========================
+# OS Files
+# ===========================
+
 .DS_Store
+Thumbs.db

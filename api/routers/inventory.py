@@ -1,5 +1,7 @@
-from typing import Optional
-
+"""
+MEMBER 2 — Product & Inventory API
+Same pattern as sales.py: thin router, business logic lives in dbt marts.
+"""
 from fastapi import APIRouter, Query
 from db import query
 
@@ -18,40 +20,19 @@ def inventory_health(needs_reorder: bool | None = None):
 
 
 @router.get("/profitability/top")
-def top_profitable_products(
-    limit: int = Query(10, ge=1, le=100),
-    category: Optional[str] = Query(
-        default=None,
-        description="Filter products by category"
-    ),
-):
+def top_profitable_products(limit: int = Query(10, le=100)):
     sql = """
-        select product_id,
-               product_name,
-               category,
-               gross_margin_pct,
-               net_units_sold,
-               estimated_net_profit
+        select product_id, product_name, category, gross_margin_pct,
+               net_units_sold, estimated_net_profit
         from marts.fct_product_profitability
-    """
-
-    params = {}
-
-    if category:
-        sql += " where category = :category"
-        params["category"] = category
-
-    sql += """
         order by estimated_net_profit desc
         limit :limit
     """
-
-    params["limit"] = limit
-    return query(sql, params)
+    return query(sql, {"limit": limit})
 
 
 @router.get("/returns/analysis")
-def return_analysis(min_rate: float = Query(0.0, ge=0.0)):
+def return_analysis(min_rate: float = 0.0):
     sql = """
         select product_id, product_name, reason, units_returned,
                units_sold, return_rate
@@ -79,9 +60,36 @@ def inventory_kpi_summary():
     sql = """
         select
             count(*) filter (where needs_reorder) as products_needing_reorder,
-            round(avg(gross_margin_pct), 3) as avg_margin
+            round(avg(gross_margin_pct), 3)          as avg_margin
         from marts.fct_inventory_health h
         join marts.fct_product_profitability p using (product_id)
     """
     rows = query(sql)
     return rows[0] if rows else {}
+
+@router.get("/categories/revenue")
+def category_revenue():
+    sql = """
+        select
+            category,
+            sum(estimated_net_profit) as revenue
+        from marts.fct_product_profitability
+        group by category
+        order by revenue desc
+    """
+    return query(sql)
+
+@router.get("/products/status")
+def inventory_status():
+    sql = """
+        select
+            product_name,
+            category,
+            stock_on_hand,
+            reorder_threshold,
+            days_of_stock_remaining,
+            needs_reorder
+        from marts.fct_inventory_health
+        order by days_of_stock_remaining asc nulls last
+    """
+    return query(sql)
