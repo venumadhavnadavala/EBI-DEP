@@ -232,7 +232,7 @@ EBI-DEP/
 **1. Clone Repository**
 
 ```bash
-git clone [https://github.com/venumadhavnadavala/EBI-DEP.git](https://github.com/venumadhavnadavala/EBI-DEP.git)
+git clone https://github.com/venumadhavnadavala/EBI-DEP.git
 cd EBI-DEP
 
 ```
