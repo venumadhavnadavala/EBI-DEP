@@ -29,10 +29,13 @@ def load_df(df, table, schema):
     schema, primary keys and constraints.
     """
 
+    if df.empty:
+        print(f"No data to load into {schema}.{table}")
+        return
+
     engine = get_engine()
 
     with engine.begin() as conn:
-
         conn.execute(
             text(f"TRUNCATE TABLE {schema}.{table}")
         )
